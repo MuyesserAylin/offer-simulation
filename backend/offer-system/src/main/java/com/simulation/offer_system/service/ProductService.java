@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.simulation.offer_system.dto.ProductDTO;
+import com.simulation.offer_system.entity.Product;
 import com.simulation.offer_system.mapper.ProductMapper;
 import com.simulation.offer_system.repository.ProductRepository;
 
@@ -23,6 +24,10 @@ public class ProductService {
                 .stream()
                 .map(productMapper::toDto)
                 .collect(Collectors.toList());
+    }
+    
+    public List<Product> getProductsByIds(List<Long> ids) {
+        return productRepository.findAllById(ids); 
     }
 
 }

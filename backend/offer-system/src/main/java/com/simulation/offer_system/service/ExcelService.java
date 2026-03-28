@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.simulation.offer_system.dto.ProductDTO;
 import com.simulation.offer_system.dto.QuotationItemDTO;
+import com.simulation.offer_system.entity.Product;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -50,30 +51,49 @@ public class ExcelService {
         return list;
     }
     
-    public ByteArrayInputStream exportProductsToExcel(List<ProductDTO> products) {
-        try (Workbook workbook = new XSSFWorkbook(); 
-             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            Sheet sheet = workbook.createSheet("Products");
-            Row headerRow = sheet.createRow(0);
-            headerRow.createCell(0).setCellValue("Product ID");
-            headerRow.createCell(1).setCellValue("Product Name");
-            headerRow.createCell(2).setCellValue("Current Price");
-            headerRow.createCell(3).setCellValue("New Price");
+	public ByteArrayInputStream exportProductsToExcel(List<Product> products) {
+	    try (Workbook workbook = new XSSFWorkbook(); 
+	         ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+	        
+	        Sheet sheet = workbook.createSheet("Products");
 
-            int rowIdx = 1;
-            for (ProductDTO product : products) {
-                Row row = sheet.createRow(rowIdx++);
-                row.createCell(0).setCellValue(product.getId());
-                row.createCell(1).setCellValue(product.getName());
-                row.createCell(2).setCellValue(product.getLastQuotedPrice() != null ? product.getLastQuotedPrice() : 0.0);
-                row.createCell(3).setCellValue(""); 
-            }
-            workbook.write(out);
-            return new ByteArrayInputStream(out.toByteArray());
-        } catch (Exception e) {
-            throw new RuntimeException("Excel oluşturma hatası: " + e.getMessage());
-        }
-    }
+	        // 1. BAŞLIK SATIRINI OLUŞTURUYORUZ
+	        Row headerRow = sheet.createRow(0);
+	        headerRow.createCell(0).setCellValue("Product ID");
+	        headerRow.createCell(1).setCellValue("Product Name");
+	        headerRow.createCell(2).setCellValue("Current Price");
+	        headerRow.createCell(3).setCellValue("New Price");
+
+	        // 2. ÜRÜNLERİ SATIR SATIR EXCEL'E YAZIYORUZ
+	        int rowIdx = 1;
+	        for (com.simulation.offer_system.entity.Product product : products) {
+	            Row row = sheet.createRow(rowIdx++);
+	            
+	            
+	            row.createCell(0).setCellValue(product.getId());
+	            
+	            
+	            row.createCell(1).setCellValue(product.getName());
+	            
+	            
+	            row.createCell(2).setCellValue(product.getLastQuotedPrice() != null ? product.getLastQuotedPrice() : 0.0);
+	            
+	            
+	            row.createCell(3).setCellValue(""); 
+	        }
+
+	        // Sütun genişliklerini otomatik ayarla (Şık dursun kanka)
+	        for (int i = 0; i < 4; i++) {
+	            sheet.autoSizeColumn(i);
+	        }
+
+	        workbook.write(out);
+	        return new ByteArrayInputStream(out.toByteArray());
+	        
+	    } catch (Exception e) {
+	        throw new RuntimeException("Excel oluşturma hatası: " + e.getMessage());
+	    }
+	}
 }
 
 

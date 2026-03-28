@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.simulation.offer_system.dto.QuotationDTO;
+import com.simulation.offer_system.dto.QuotationItemDTO;
+import com.simulation.offer_system.entity.Product;
+import com.simulation.offer_system.entity.Quotation;
 import com.simulation.offer_system.entity.QuotationItem;
 import com.simulation.offer_system.repository.QuotationItemRepository;
 import com.simulation.offer_system.service.ExcelService;
@@ -37,11 +41,23 @@ public class QuotationController {
 
     
     @GetMapping("/export-products")
-    public ResponseEntity<InputStreamResource> exportProducts() {
-        InputStreamResource file = new InputStreamResource(excelService.exportProductsToExcel(productService.getAllProducts()));
+    public ResponseEntity<InputStreamResource> exportProducts(
+            @RequestParam String email, 
+            @RequestParam List<Long> productIds) {
+
+        
+        Quotation quotation = quotationService.createNewQuotationRequest(email);
+
+       
+        List<Product> selectedProducts = productService.getProductsByIds(productIds);
+
+        // 3. Excel'i SADECE BU SEÇİLEN ürünlerle oluşturuyoruz
+        InputStreamResource file = new InputStreamResource(
+            excelService.exportProductsToExcel(selectedProducts)
+        );
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=products_to_quote.xlsx")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=quotation_" + quotation.getId() + ".xlsx")
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(file);
     }
@@ -50,10 +66,9 @@ public class QuotationController {
     @PostMapping("/import")
     public ResponseEntity<String> importQuotation(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value="email",required=true) String customerEmail) {
+            @RequestParam("quotationId") Long quotationId) { 
         
-  
-        String result = quotationService.createQuotationFromExcel(file, customerEmail);
+        String result = quotationService.createQuotationFromExcel(file, quotationId);
         return ResponseEntity.ok(result);
     }
 
@@ -64,14 +79,20 @@ public class QuotationController {
     }
    
     @GetMapping("/products/{productId}/history")
-    public ResponseEntity<List<QuotationItem>> getProductPriceHistory(@PathVariable Long productId) {
-        return ResponseEntity.ok(quotationItemRepository.findByProductId(productId));
+    public ResponseEntity<List<QuotationItemDTO>> getProductPriceHistory(@PathVariable Long productId) {
+        
+        return ResponseEntity.ok(quotationService.getProductPriceHistory(productId));
     }
     
-
     @GetMapping
-    public ResponseEntity<List<com.simulation.offer_system.entity.Quotation>> getAllQuotations() {
-    
+    public ResponseEntity<List<QuotationDTO>> getAllQuotations() {
         return ResponseEntity.ok(quotationService.getAllQuotations());
     }
+
+    // Detay sayfası için tekil çekim
+    @GetMapping("/{id}")
+    public ResponseEntity<QuotationDTO> getQuotation(@PathVariable Long id) {
+        return ResponseEntity.ok(quotationService.getQuotationById(id));
+    }
+    
 }
