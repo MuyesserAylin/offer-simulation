@@ -57,14 +57,14 @@ public class ExcelService {
 	        
 	        Sheet sheet = workbook.createSheet("Products");
 
-	        // 1. BAŞLIK SATIRINI OLUŞTURUYORUZ
+	        
 	        Row headerRow = sheet.createRow(0);
 	        headerRow.createCell(0).setCellValue("Product ID");
 	        headerRow.createCell(1).setCellValue("Product Name");
 	        headerRow.createCell(2).setCellValue("Current Price");
 	        headerRow.createCell(3).setCellValue("New Price");
 
-	        // 2. ÜRÜNLERİ SATIR SATIR EXCEL'E YAZIYORUZ
+	     
 	        int rowIdx = 1;
 	        for (com.simulation.offer_system.entity.Product product : products) {
 	            Row row = sheet.createRow(rowIdx++);
@@ -82,7 +82,7 @@ public class ExcelService {
 	            row.createCell(3).setCellValue(""); 
 	        }
 
-	        // Sütun genişliklerini otomatik ayarla (Şık dursun kanka)
+	        
 	        for (int i = 0; i < 4; i++) {
 	            sheet.autoSizeColumn(i);
 	        }
