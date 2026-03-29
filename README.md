@@ -48,6 +48,8 @@ Aşağıdaki environment variable'ları sisteme tanımla:
 | `DB_PASSWORD_PROJE1` | PostgreSQL şifresi |
 | `GMAIL_APP_CODE` | Gmail uygulama şifresi ([Nasıl alınır?](https://support.google.com/accounts/answer/185833)) |
 
+> ⚠️ **Önemli:** `EmailService.java` dosyasındaki `message.setFrom(...)` satırını ve `application.properties` dosyasındaki `spring.mail.username` alanını **kendi Gmail adresinizle** güncellemeniz gerekmektedir.
+
 **Windows (PowerShell):**
 ```powershell
 $env:DB_PASSWORD_PROJE1="sifren"
