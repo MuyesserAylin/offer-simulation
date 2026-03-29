@@ -46,12 +46,18 @@ public class QuotationService {
         Quotation quotation = quotationRepository.findById(quotationId)
                 .orElseThrow(() -> new RuntimeException("Teklif bulunamadı! ID: " + quotationId));
 
+      
         List<QuotationItemDTO> itemsFromExcel = excelService.readExcel(file);
+
+        
+        StringBuilder mailIcerigi = new StringBuilder();
+        mailIcerigi.append("Sayın Müşterimiz, teklif fiyatlarınız hazır:\n\n");
 
         for (QuotationItemDTO itemDto : itemsFromExcel) {
             Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new RuntimeException("Ürün bulunamadı ID: " + itemDto.getProductId()));
 
+            
             product.setLastQuotationDate(LocalDateTime.now());
             product.setLastQuotedPrice(itemDto.getOfferedPrice());
             productRepository.save(product);
@@ -61,12 +67,23 @@ public class QuotationService {
             quotationItem.setProduct(product);
             quotationItem.setOfferedPrice(itemDto.getOfferedPrice());
             quotationItemRepository.save(quotationItem);
+
+            
+            mailIcerigi.append("- ").append(product.getName())
+                       .append(": ").append(itemDto.getOfferedPrice()).append(" TL\n");
         }
 
-        quotation.setStatus("PRICED"); // Fiyatlar Excel'den yüklendi
+        quotation.setStatus("PRICED"); 
         quotationRepository.save(quotation);
 
-        return "Teklif (ID: " + quotationId + ") başarıyla fiyatlandırıldı. Müşteri: " + quotation.getCustomerEmail();
+       
+        emailService.sendEmail(
+            quotation.getCustomerEmail(),
+            "Teklifiniz Hazır!",
+            mailIcerigi.toString()
+        );
+
+        return "Excel işlendi ve " + quotation.getCustomerEmail() + " adresine mail atıldı!";
     }
     
     public String approveQuotation(Long quotationId) {
@@ -123,7 +140,7 @@ public class QuotationService {
     }
    
 
-    // Tüm teklifleri DTO olarak döner
+    
     public List<QuotationDTO> getAllQuotations() {
         return quotationRepository.findAll()
                 .stream()
@@ -131,7 +148,7 @@ public class QuotationService {
                 .collect(Collectors.toList());
     }
 
-    // Tek bir teklifi DTO olarak döner
+   
     public QuotationDTO getQuotationById(Long id) {
         Quotation quotation = quotationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Teklif bulunamadı: " + id));
